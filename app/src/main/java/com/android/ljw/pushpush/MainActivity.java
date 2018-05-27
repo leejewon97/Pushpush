@@ -1,5 +1,8 @@
 package com.android.ljw.pushpush;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -7,12 +10,14 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     float stageWidth, stageHeight;
 
     int gridCount;
+    int boxCount;
     float unit;
     Stage stage;
 
@@ -26,23 +31,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initGame();
+        initBoxCount();
         initStage();
         initPlayer();
         initButton();
-    }
-
-    private void initPlayer() {
-        player = new Player();
-        stage.addPlayer(player);
-    }
-
-    private void initStage() {
-        container = findViewById(R.id.container);
-        stage = new Stage(this);
-        stage.setConfig(gridCount, unit);
-        container.addView(stage);
-
-        stage.setCurrentMap(gameMap.map);
     }
 
     private void initGame() {
@@ -57,11 +49,36 @@ public class MainActivity extends AppCompatActivity {
         unit = stageWidth / gridCount;
     }
 
+    private void initBoxCount() {
+        boxCount = 0;
+        for (int x = 0; x < gridCount; x++) {
+            for (int y = 0; y < gridCount; y++) {
+                if (gameMap.map[y][x] == 1)
+                    boxCount++;
+            }
+        }
+    }
+
+    private void initStage() {
+        container = findViewById(R.id.container);
+        stage = new Stage(this);
+        stage.setConfig(gridCount, boxCount, unit, gameMap.map);
+        container.addView(stage);
+
+        stage.setCurrentMap(gameMap.map);
+    }
+
+    private void initPlayer() {
+        player = new Player();
+        stage.addPlayer(player);
+    }
+
     public void initButton() {
         findViewById(R.id.btnUp).setOnClickListener(buttonListener);
         findViewById(R.id.btnDown).setOnClickListener(buttonListener);
         findViewById(R.id.btnLeft).setOnClickListener(buttonListener);
         findViewById(R.id.btnRight).setOnClickListener(buttonListener);
+        findViewById(R.id.btnRefresh).setOnClickListener(buttonListener);
     }
 
     View.OnClickListener buttonListener = new View.OnClickListener() {
@@ -80,6 +97,16 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.btnRight:
                     stage.move(Stage.RIGHT);
                     break;
+                case R.id.btnRefresh:
+                    stage.move(Stage.REFRESH);
+                    break;
+            }
+
+            for (int x = 0; x < 10; x++) {
+                for (int y = 0; y < 10; y++) {
+                    if (11 == gameMap.map[y][x])
+                        System.out.println("!!!!!!!!!!!!!!!!!!" + x + ", " + y);
+                }
             }
         }
     };

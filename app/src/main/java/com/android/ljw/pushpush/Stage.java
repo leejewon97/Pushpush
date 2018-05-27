@@ -1,16 +1,21 @@
 package com.android.ljw.pushpush;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.View;
+import android.widget.Toast;
 
 public class Stage extends View {
+//    MainActivity activity;
     public static final int UP = 0;
     public static final int DOWN = 1;
     public static final int LEFT = 2;
     public static final int RIGHT = 3;
+    public static final int REFRESH = 4;
 
     int currentMap[][];
     Paint gridPaint = new Paint();
@@ -18,9 +23,11 @@ public class Stage extends View {
     Paint goalPaint = new Paint();
     Paint rockPaint = new Paint();
     Paint completePaint = new Paint();
-
+    int goalCount = 0;
+    int boxCount;
     int gridCount;
     float unit;
+    int[][] originMap;
     Player player;
 
     public Stage(Context context) {
@@ -34,16 +41,19 @@ public class Stage extends View {
         goalPaint.setStrokeWidth(10);
 
         boxPaint.setColor(Color.CYAN);
-
         rockPaint.setColor(Color.BLACK);
-
         completePaint.setColor(Color.GRAY);
-
     }
 
-    public void setConfig(int gridCount, float unit) {
+    public void setConfig(int gridCount, int boxCount, float unit, int[][] map) {
         this.gridCount = gridCount;
+        this.boxCount = boxCount;
         this.unit = unit;
+        originMap = map;
+    }
+
+    public void setCurrentMap(int[][] map) {
+        currentMap = map;
     }
 
     @Override
@@ -58,12 +68,12 @@ public class Stage extends View {
     }
 
     private void drawPlayer(Canvas canvas) {
-        if (player != null)
-            canvas.drawCircle(
-                    player.x * unit + unit / 2,  // x좌표
-                    player.y * unit + unit / 2,  // y좌표
-                    unit / 2,           // 크기
-                    player.paint);
+//        if (player != null)
+        canvas.drawCircle(
+                player.x * unit + unit / 2,  // x좌표
+                player.y * unit + unit / 2,  // y좌표
+                unit / 2,           // 크기
+                player.paint);
     }
 
     Paint tempPaint;
@@ -111,9 +121,13 @@ public class Stage extends View {
                 if (notCollisionCheck(RIGHT))
                     player.right();
                 break;
+            case REFRESH:
+                refresh();
+                break;
         }
+
         invalidate();
-//        completionProcess();
+        completionProcess();
     }
 
     public boolean notCollisionCheck(int direction) {
@@ -234,17 +248,43 @@ public class Stage extends View {
         return true;
     }
 
-//    private void completionProcess() {
-//        for (int x = 0; x < gridCount; x++) {
-//            for (int y = 0; y < gridCount; y++) {
-//                if (currentMap[y][x] == 9) {
-//
-//                }
-//            }
-//        }
-//    }
+    private void completionProcess() {
+        for (int x = 0; x < gridCount; x++) {
+            for (int y = 0; y < gridCount; y++) {
+                if (currentMap[y][x] == 10)
+                    goalCount++;
+            }
+        }
+        if (goalCount == boxCount) {
+            // alert dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle("미션 성공!!");
+            builder.setMessage("다음 단계로 넘어갈까요?");
+            builder.setPositiveButton("다음", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Toast.makeText(getContext(),"다음버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
+                    GameMap.LEVEL++;
+                }
+            });
+            builder.setNegativeButton("종료", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Toast.makeText(getContext(),"종료버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
+//                    activity.finish();
+                }
+            });
+            // dialog의 바깥쪽을 눌렀을때, dialog가 종료될지에 대한 여부
+            builder.setCancelable(false);
+            builder.show();
+        }
+    }
 
-    public void setCurrentMap(int[][] map) {
-        currentMap = map;
+    private void refresh() {
+        player = new Player();
+        addPlayer(player);
+        goalCount = 0;
+
+        setCurrentMap(originMap);
     }
 }

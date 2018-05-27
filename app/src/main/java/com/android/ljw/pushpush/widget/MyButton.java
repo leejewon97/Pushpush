@@ -9,13 +9,13 @@ public class MyButton extends AppCompatButton {
 
     public MyButton(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setBackgroundColor(Color.GRAY);
+        setBackgroundColor(Color.DKGRAY);
         setTextColor(Color.WHITE);
     }
 
     public MyButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        setBackgroundColor(Color.GRAY);
+        setBackgroundColor(Color.DKGRAY);
         setTextColor(Color.WHITE);
     }
 
