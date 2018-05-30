@@ -267,7 +267,8 @@ public class Stage extends View {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     Toast.makeText(getContext(), "종료버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
-//                    finish();
+//                    finish(); 대체
+                    System.exit(0);
                 }
             });
             // dialog의 바깥쪽을 눌렀을때, dialog가 종료될지에 대한 여부

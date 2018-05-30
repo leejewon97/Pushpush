@@ -38,6 +38,32 @@ public class MainActivity extends AppCompatActivity {
         stage.initBoxCount(gameMap.map);
     }
 
+    private long pressTIme;
+    // 뒤로가기 누를때 실행되는 함수. 2초이내 더블클릭 시 종료.
+    @Override
+    public void onBackPressed() {
+//        super.onBackPressed();
+        if (pressTIme == 0) {
+            Toast.makeText(this, "한번 더 누르면 종료됩니다", Toast.LENGTH_SHORT).show();
+            pressTIme = System.currentTimeMillis();
+        } else {
+            long seconds = System.currentTimeMillis() - pressTIme;
+
+            if (seconds > 2000) {
+                pressTIme = 0;
+            } else
+                finish();
+        }
+    }
+
+    // 꺼질때 실행되는 함수. static을 초기화하기 위해 사용했다.
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        GameMap.LEVEL = 1;
+    }
+
     private void initGame() {
         gameMap = new GameMap();
         //화면 전체사이즈
