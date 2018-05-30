@@ -7,28 +7,29 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class Stage extends View {
-//    MainActivity activity;
     public static final int UP = 0;
     public static final int DOWN = 1;
     public static final int LEFT = 2;
     public static final int RIGHT = 3;
-    public static final int REFRESH = 4;
 
-    int currentMap[][];
+    int[][] currentMap = new int[10][10];
+    int[][] originMap = new int[10][10];
+
     Paint gridPaint = new Paint();
     Paint boxPaint = new Paint();
     Paint goalPaint = new Paint();
     Paint rockPaint = new Paint();
     Paint completePaint = new Paint();
-    int goalCount = 0;
+    int completeCount = 0;
     int boxCount;
     int gridCount;
     float unit;
-    int[][] originMap;
     Player player;
+    TextView levelView;
 
     public Stage(Context context) {
         super(context);
@@ -45,15 +46,16 @@ public class Stage extends View {
         completePaint.setColor(Color.GRAY);
     }
 
-    public void setConfig(int gridCount, int boxCount, float unit, int[][] map) {
+    public void setConfig(int gridCount, float unit) {
         this.gridCount = gridCount;
-        this.boxCount = boxCount;
         this.unit = unit;
-        originMap = map;
     }
 
-    public void setCurrentMap(int[][] map) {
-        currentMap = map;
+    public void setMap(int[][] map) {
+        for (int i = 0; i < gridCount; i++) {
+            originMap[i] = map[i].clone();
+            currentMap[i] = map[i].clone();
+        }
     }
 
     @Override
@@ -121,16 +123,14 @@ public class Stage extends View {
                 if (notCollisionCheck(RIGHT))
                     player.right();
                 break;
-            case REFRESH:
-                refresh();
-                break;
         }
 
         invalidate();
         completionProcess();
+        System.out.println("!!!!!!!!!!!!!!!!!!!! goalCount : " + completeCount + ", boxCount : " + boxCount);
     }
 
-    public boolean notCollisionCheck(int direction) {
+    private boolean notCollisionCheck(int direction) {
         switch (direction) {
             case UP:
                 // 맵을 벗어나면 이동X
@@ -249,29 +249,25 @@ public class Stage extends View {
     }
 
     private void completionProcess() {
-        for (int x = 0; x < gridCount; x++) {
-            for (int y = 0; y < gridCount; y++) {
-                if (currentMap[y][x] == 10)
-                    goalCount++;
-            }
-        }
-        if (goalCount == boxCount) {
+        scanComplete();
+        if (completeCount == boxCount) {
+            int upLevel = GameMap.LEVEL + 1;
             // alert dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle("미션 성공!!");
-            builder.setMessage("다음 단계로 넘어갈까요?");
+            builder.setTitle("Level " + GameMap.LEVEL + " 성공!!");
+            builder.setMessage("Level " + upLevel + "로 넘어갈까요?");
             builder.setPositiveButton("다음", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    Toast.makeText(getContext(),"다음버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
-                    GameMap.LEVEL++;
+//                    Toast.makeText(getContext(), "다음버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
+                    levelUp();
                 }
             });
             builder.setNegativeButton("종료", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    Toast.makeText(getContext(),"종료버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
-//                    activity.finish();
+                    Toast.makeText(getContext(), "종료버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
+//                    finish();
                 }
             });
             // dialog의 바깥쪽을 눌렀을때, dialog가 종료될지에 대한 여부
@@ -280,11 +276,43 @@ public class Stage extends View {
         }
     }
 
-    private void refresh() {
+    public void initBoxCount(int[][] map) {
+        boxCount = 0;
+        for (int x = 0; x < gridCount; x++) {
+            for (int y = 0; y < gridCount; y++) {
+                if (map[y][x] == 1)
+                    boxCount++;
+            }
+        }
+    }
+
+    private void scanComplete() {
+        int count = 0;
+        for (int x = 0; x < gridCount; x++) {
+            for (int y = 0; y < gridCount; y++) {
+                if (currentMap[y][x] == 10)
+                    count++;
+            }
+        }
+        completeCount = count;
+    }
+
+    private void levelUp() {
+        GameMap.LEVEL++;
+        levelView.setText("<Level " + GameMap.LEVEL + ">");
+        refresh();
+
+        GameMap gameMap = new GameMap();
+        setMap(gameMap.map);
+        initBoxCount(gameMap.map);
+
+        invalidate();
+    }
+
+    public void refresh() {
         player = new Player();
         addPlayer(player);
-        goalCount = 0;
 
-        setCurrentMap(originMap);
+        setMap(originMap);
     }
 }
